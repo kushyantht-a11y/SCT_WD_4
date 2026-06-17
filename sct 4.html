@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart To-Do App</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#2563eb);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(15px);
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h1{
+    text-align:center;
+    color:white;
+    margin-bottom:20px;
+}
+
+.task-form{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+}
+
+.task-form input{
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    outline:none;
+}
+
+.add-btn{
+    background:#22c55e;
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:12px 20px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.stats{
+    margin:20px 0;
+    display:flex;
+    justify-content:space-between;
+    color:white;
+    font-size:18px;
+}
+
+.task-list{
+    margin-top:15px;
+}
+
+.task{
+    background:white;
+    padding:15px;
+    border-radius:15px;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.task-info{
+    flex:1;
+}
+
+.task-title{
+    font-size:18px;
+    font-weight:600;
+}
+
+.task-date{
+    color:#666;
+    font-size:14px;
+    margin-top:5px;
+}
+
+.completed .task-title{
+    text-decoration:line-through;
+    color:green;
+}
+
+.actions{
+    display:flex;
+    gap:8px;
+}
+
+.actions button{
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+}
+
+.complete{
+    background:#22c55e;
+}
+
+.edit{
+    background:#f59e0b;
+}
+
+.delete{
+    background:#ef4444;
+}
+
+@media(max-width:768px){
+
+.task-form{
+    grid-template-columns:1fr;
+}
+
+.stats{
+    flex-direction:column;
+    gap:10px;
+}
+
+.task{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+}
+
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>📋 Smart To-Do App</h1>
+
+    <div class="task-form">
+
+        <input type="text" id="taskInput"
+        placeholder="Enter Task">
+
+        <input type="date" id="taskDate">
+
+        <input type="time" id="taskTime">
+
+        <button class="add-btn"
+        onclick="addTask()">Add</button>
+
+    </div>
+
+    <div class="stats">
+        <span>Total Tasks: <b id="total">0</b></span>
+        <span>Completed: <b id="completed">0</b></span>
+    </div>
+
+    <div class="task-list" id="taskList"></div>
+
+</div>
+
+<script>
+
+let tasks =
+JSON.parse(localStorage.getItem("tasks")) || [];
+
+function saveTasks(){
+    localStorage.setItem(
+        "tasks",
+        JSON.stringify(tasks)
+    );
+}
+
+function updateStats(){
+
+document.getElementById("total").innerText =
+tasks.length;
+
+document.getElementById("completed").innerText =
+tasks.filter(t=>t.completed).length;
+
+}
+
+function renderTasks(){
+
+const taskList =
+document.getElementById("taskList");
+
+taskList.innerHTML="";
+
+tasks.forEach((task,index)=>{
+
+const div=document.createElement("div");
+
+div.className=
+`task ${task.completed ? "completed" : ""}`;
+
+div.innerHTML=`
+
+<div class="task-info">
+
+<div class="task-title">
+${task.title}
+</div>
+
+<div class="task-date">
+📅 ${task.date || "No Date"}
+ ⏰ ${task.time || ""}
+</div>
+
+</div>
+
+<div class="actions">
+
+<button class="complete"
+onclick="toggleComplete(${index})">
+✓
+</button>
+
+<button class="edit"
+onclick="editTask(${index})">
+Edit
+</button>
+
+<button class="delete"
+onclick="deleteTask(${index})">
+Delete
+</button>
+
+</div>
+`;
+
+taskList.appendChild(div);
+
+});
+
+updateStats();
+saveTasks();
+
+}
+
+function addTask(){
+
+const title =
+document.getElementById("taskInput").value;
+
+const date =
+document.getElementById("taskDate").value;
+
+const time =
+document.getElementById("taskTime").value;
+
+if(title.trim()===""){
+alert("Enter a task");
+return;
+}
+
+tasks.push({
+title,
+date,
+time,
+completed:false
+});
+
+document.getElementById("taskInput").value="";
+document.getElementById("taskDate").value="";
+document.getElementById("taskTime").value="";
+
+renderTasks();
+
+}
+
+function toggleComplete(index){
+
+tasks[index].completed =
+!tasks[index].completed;
+
+renderTasks();
+
+}
+
+function deleteTask(index){
+
+tasks.splice(index,1);
+
+renderTasks();
+
+}
+
+function editTask(index){
+
+const newTask =
+prompt(
+"Edit Task",
+tasks[index].title
+);
+
+if(newTask){
+
+tasks[index].title = newTask;
+
+renderTasks();
+
+}
+
+}
+
+renderTasks();
+
+</script>
+
+</body>
+</html>
